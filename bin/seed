@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use CarePassport\Database\Connection;
+use CarePassport\Database\SeedRunner;
+
+$config = require dirname(__DIR__) . '/bootstrap/app.php';
+$args = array_slice($argv, 1);
+$path = base_path('database/seeds');
+
+if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
+    echo "Usage: php bin/seed [--dry-run]\n";
+    exit(0);
+}
+
+if (in_array('--dry-run', $args, true)) {
+    $files = SeedRunner::sqlFiles($path);
+    echo "Seed files discovered:\n";
+
+    foreach ($files as $file) {
+        echo ' - ' . basename($file) . "\n";
+    }
+
+    if ($files === []) {
+        echo " - none\n";
+    }
+
+    exit(0);
+}
+
+$pdo = Connection::make($config['database']);
+$runner = new SeedRunner($pdo, $path);
+$ran = $runner->run();
+
+if ($ran === []) {
+    echo "No seed files found.\n";
+    exit(0);
+}
+
+foreach ($ran as $seed) {
+    echo "Seeded: {$seed}\n";
+}

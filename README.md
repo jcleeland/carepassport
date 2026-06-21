@@ -58,3 +58,54 @@ Read these first:
 ## Implementation Rule
 
 Questions, intro pages, poster mappings and output labels must be database-driven, not hardcoded.
+
+## Local Foundation Setup
+
+The current implementation is a minimal PHP foundation only. It does not yet include resident profiles, questions, answers, uploads or PDF generation.
+
+1. Copy the environment template:
+
+   ```sh
+   cp .env.example .env
+   ```
+
+2. Edit `.env` for your local database:
+
+   ```dotenv
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=care_passport
+   DB_USERNAME=care_passport
+   DB_PASSWORD=change-me
+   ```
+
+3. Create the database and user in MySQL or MariaDB using your local admin account.
+
+4. Check the PHP bootstrap:
+
+   ```sh
+   php -S 127.0.0.1:8000 -t public
+   ```
+
+   Then open `http://127.0.0.1:8000`.
+
+## Migrations and Seeds
+
+Migration files live in `database/migrations` and are executed in filename order.
+
+The migration runner creates and uses a `schema_migrations` table to track applied migrations:
+
+```sh
+php bin/migrate --dry-run
+php bin/migrate --status
+php bin/migrate
+```
+
+Seed files live in `database/seeds` and are executed in filename order:
+
+```sh
+php bin/seed --dry-run
+php bin/seed
+```
+
+The current seed file is starter content for the future data-model phase. Run real seeds only after the matching product tables have been created by migrations.

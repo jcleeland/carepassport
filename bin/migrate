@@ -1,0 +1,55 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use CarePassport\Database\Connection;
+use CarePassport\Database\MigrationRunner;
+
+$config = require dirname(__DIR__) . '/bootstrap/app.php';
+$args = array_slice($argv, 1);
+$path = base_path('database/migrations');
+
+if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
+    echo "Usage: php bin/migrate [--dry-run] [--status]\n";
+    exit(0);
+}
+
+if (in_array('--dry-run', $args, true)) {
+    $files = MigrationRunner::sqlFiles($path);
+    echo "Migration files discovered:\n";
+
+    foreach ($files as $file) {
+        echo ' - ' . basename($file) . "\n";
+    }
+
+    if ($files === []) {
+        echo " - none\n";
+    }
+
+    exit(0);
+}
+
+$pdo = Connection::make($config['database']);
+$runner = new MigrationRunner($pdo, $path);
+
+if (in_array('--status', $args, true)) {
+    echo "Migration status:\n";
+
+    foreach ($runner->status() as $migration) {
+        echo sprintf(" - [%s] %s\n", $migration['status'], $migration['file']);
+    }
+
+    exit(0);
+}
+
+$ran = $runner->run();
+
+if ($ran === []) {
+    echo "Nothing to migrate.\n";
+    exit(0);
+}
+
+foreach ($ran as $migration) {
+    echo "Migrated: {$migration}\n";
+}

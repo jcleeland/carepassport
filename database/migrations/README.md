@@ -9,3 +9,11 @@ Expected naming pattern:
 - `003_create_questions_and_paths.sql`
 - `004_create_answers_and_visibility.sql`
 - `005_create_photos_and_outputs.sql`
+
+Run migrations with:
+
+```sh
+php bin/migrate
+```
+
+The runner creates a `schema_migrations` table automatically and records each applied SQL file by filename.
