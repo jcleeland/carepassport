@@ -1,0 +1,17 @@
+.env
+/vendor/
+/node_modules/
+/public/uploads/*
+!/public/uploads/.gitkeep
+/storage/app/*
+!/storage/app/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/generated-pdfs/*
+!/storage/generated-pdfs/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/private/*
+!/storage/private/.gitkeep
+*.log
+.DS_Store
