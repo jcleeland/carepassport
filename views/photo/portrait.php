@@ -28,7 +28,10 @@
 
     <div class="actions">
         <button type="submit"><?= $photo !== null ? 'Replace photo' : 'Upload photo' ?></button>
-        <a href="/photo/portrait/skip"><?= $photo !== null ? 'Continue' : 'Continue without a photo' ?></a>
+        <a href="/photo/portrait/skip"><?= $photo !== null ? 'Continue to preview' : 'Continue without a photo' ?></a>
+        <?php if ($photo !== null): ?>
+            <a href="/output/poster-a">Preview Poster A</a>
+        <?php endif; ?>
         <a href="/questionnaire/review">Back to review</a>
     </div>
 </form>

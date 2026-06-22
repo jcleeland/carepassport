@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use CarePassport\Controllers\IntroConsentController;
+use CarePassport\Controllers\OutputController;
 use CarePassport\Controllers\PhotoController;
 use CarePassport\Controllers\QuestionnaireController;
 use CarePassport\Controllers\ResidentController;
@@ -14,6 +15,7 @@ use CarePassport\Http\Session;
 use CarePassport\Repositories\CompletionModeRepository;
 use CarePassport\Repositories\ConsentRecordRepository;
 use CarePassport\Repositories\IntroPageRepository;
+use CarePassport\Repositories\OutputRepository;
 use CarePassport\Repositories\PhotoRepository;
 use CarePassport\Repositories\QuestionnaireRepository;
 use CarePassport\Repositories\ResidentRepository;
@@ -38,6 +40,7 @@ $completionModes = new CompletionModeRepository($pdo);
 $consentRecords = new ConsentRecordRepository($pdo);
 $questionnaire = new QuestionnaireRepository($pdo);
 $photos = new PhotoRepository($pdo);
+$outputs = new OutputRepository($pdo);
 $portraitProcessor = new PortraitImageProcessor($config['photo']);
 
 $startController = new StartController($view, $temporarySessions);
@@ -67,6 +70,13 @@ $photoController = new PhotoController(
     $photos,
     $portraitProcessor,
 );
+$outputController = new OutputController(
+    $view,
+    $temporarySessions,
+    $residents,
+    $outputs,
+    $photos,
+);
 
 $router = new Router();
 $router->get('/', fn () => $startController->show());
@@ -90,5 +100,6 @@ $router->get('/photo/portrait', fn () => $photoController->showPortrait());
 $router->post('/photo/portrait', fn () => $photoController->uploadPortrait());
 $router->get('/photo/portrait/preview', fn () => $photoController->previewPortrait());
 $router->get('/photo/portrait/skip', fn () => $photoController->skipPortrait());
+$router->get('/output/poster-a', fn () => $outputController->posterA());
 
 $router->dispatch($request)->send();

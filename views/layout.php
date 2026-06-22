@@ -172,6 +172,170 @@
             object-fit: cover;
             width: 100%;
         }
+
+        .output-actions {
+            margin-bottom: 18px;
+        }
+
+        .poster-a-preview {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(29, 42, 36, .08);
+            display: grid;
+            gap: 7mm;
+            margin: 0 auto;
+            min-height: 297mm;
+            padding: 12mm;
+            width: 210mm;
+        }
+
+        .poster-a-header {
+            border-bottom: 2px solid var(--ink);
+            margin: 0;
+            padding: 0 0 4mm;
+        }
+
+        .poster-a-header p {
+            font-size: 24pt;
+            font-weight: 800;
+            letter-spacing: 0;
+            line-height: 1.05;
+            margin: 0;
+        }
+
+        .poster-a-hero {
+            align-items: stretch;
+            display: grid;
+            gap: 8mm;
+            grid-template-columns: minmax(0, 70mm) 1fr;
+        }
+
+        .poster-a-hero-without-photo {
+            grid-template-columns: 1fr;
+        }
+
+        .poster-a-photo-wrap {
+            align-self: start;
+        }
+
+        .poster-a-photo {
+            aspect-ratio: 4 / 5;
+            border-radius: 3mm;
+            display: block;
+            height: auto;
+            object-fit: cover;
+            width: 70mm;
+        }
+
+        .poster-a-name-block {
+            align-self: center;
+        }
+
+        .poster-a-kicker {
+            color: var(--muted);
+            font-size: 11pt;
+            font-weight: 800;
+            margin: 0 0 2mm;
+        }
+
+        .poster-a-name-block h1 {
+            font-size: 38pt;
+            line-height: 1;
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .poster-a-caption {
+            font-size: 16pt;
+            font-weight: 650;
+            line-height: 1.25;
+            margin: 5mm 0 0;
+        }
+
+        .poster-a-zone-grid {
+            display: grid;
+            gap: 5mm;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .poster-a-zone {
+            border-top: 1px solid var(--border);
+            padding-top: 3mm;
+        }
+
+        .poster-a-zone-life_in_brief,
+        .poster-a-zone-please_know {
+            grid-column: 1 / -1;
+        }
+
+        .poster-a-zone h2 {
+            font-size: 13pt;
+            line-height: 1.15;
+            margin: 0 0 2mm;
+        }
+
+        .poster-a-zone p {
+            font-size: 11pt;
+            line-height: 1.28;
+            margin: 0 0 2mm;
+            overflow-wrap: anywhere;
+        }
+
+        .poster-a-footer {
+            align-self: end;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 7pt;
+            line-height: 1.25;
+            padding-top: 3mm;
+        }
+
+        @media (max-width: 900px) {
+            .poster-a-preview {
+                min-height: auto;
+                width: 100%;
+            }
+
+            .poster-a-hero,
+            .poster-a-zone-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .poster-a-photo {
+                max-width: 260px;
+                width: 100%;
+            }
+        }
+
+        @media print {
+            @page {
+                margin: 0;
+                size: A4 portrait;
+            }
+
+            body {
+                background: #ffffff;
+            }
+
+            body > header,
+            .output-actions {
+                display: none;
+            }
+
+            main {
+                max-width: none;
+                padding: 0;
+            }
+
+            .poster-a-preview {
+                border: 0;
+                box-shadow: none;
+                min-height: 297mm;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                width: 210mm;
+            }
+        }
     </style>
 </head>
 <body>

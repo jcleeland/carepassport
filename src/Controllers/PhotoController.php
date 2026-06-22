@@ -68,7 +68,7 @@ final class PhotoController
 
         Session::flash('status', 'Portrait photo saved.');
 
-        return Response::redirect('/photo/portrait');
+        return Response::redirect('/output/poster-a');
     }
 
     public function previewPortrait(): Response
@@ -110,7 +110,7 @@ final class PhotoController
             return Response::redirect('/resident/new');
         }
 
-        return Response::redirect('/questionnaire/complete');
+        return Response::redirect('/output/poster-a');
     }
 
     /**
