@@ -2,7 +2,7 @@
 
 <div class="panel">
     <p>Create a person-centred profile that can later be used to build helpful printable information for people involved in support.</p>
-    <p>This first step only creates a temporary session and a basic profile. Consent, questions, photo upload and PDFs come later in the MVP flow.</p>
+    <p>You can continue through profile setup, consent, questions, review, photo upload and printable previews.</p>
 
     <form method="post" action="/start">
         <div class="actions">
