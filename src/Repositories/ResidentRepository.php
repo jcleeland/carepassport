@@ -99,6 +99,20 @@ final class ResidentRepository
         return is_array($resident) ? $resident : null;
     }
 
+    public function setQuestionPath(int $residentId, int $temporarySessionId, int $questionPathId): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE residents
+                SET question_path_id = :question_path_id
+                WHERE id = :id AND temporary_session_id = :temporary_session_id',
+        );
+        $statement->execute([
+            'id' => $residentId,
+            'temporary_session_id' => $temporarySessionId,
+            'question_path_id' => $questionPathId,
+        ]);
+    }
+
     private static function nullable(string $value): ?string
     {
         return $value !== '' ? $value : null;

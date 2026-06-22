@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use CarePassport\Controllers\IntroConsentController;
+use CarePassport\Controllers\QuestionnaireController;
 use CarePassport\Controllers\ResidentController;
 use CarePassport\Controllers\StartController;
 use CarePassport\Database\Connection;
@@ -12,6 +13,7 @@ use CarePassport\Http\Session;
 use CarePassport\Repositories\CompletionModeRepository;
 use CarePassport\Repositories\ConsentRecordRepository;
 use CarePassport\Repositories\IntroPageRepository;
+use CarePassport\Repositories\QuestionnaireRepository;
 use CarePassport\Repositories\ResidentRepository;
 use CarePassport\Repositories\SupportContextRepository;
 use CarePassport\Repositories\TemporarySessionRepository;
@@ -31,6 +33,7 @@ $residents = new ResidentRepository($pdo);
 $introPages = new IntroPageRepository($pdo);
 $completionModes = new CompletionModeRepository($pdo);
 $consentRecords = new ConsentRecordRepository($pdo);
+$questionnaire = new QuestionnaireRepository($pdo);
 
 $startController = new StartController($view, $temporarySessions);
 $residentController = new ResidentController($view, $request, $temporarySessions, $supportContexts, $residents);
@@ -42,6 +45,13 @@ $introConsentController = new IntroConsentController(
     $introPages,
     $completionModes,
     $consentRecords,
+);
+$questionnaireController = new QuestionnaireController(
+    $view,
+    $request,
+    $temporarySessions,
+    $residents,
+    $questionnaire,
 );
 
 $router = new Router();
@@ -55,5 +65,10 @@ $router->get('/intro', fn () => $introConsentController->intro());
 $router->get('/consent', fn () => $introConsentController->consent());
 $router->post('/consent', fn () => $introConsentController->storeConsent());
 $router->get('/next-steps', fn () => $introConsentController->nextSteps());
+$router->get('/questionnaire/select', fn () => $questionnaireController->selectPath());
+$router->post('/questionnaire/select', fn () => $questionnaireController->storePath());
+$router->get('/questionnaire/question', fn () => $questionnaireController->showQuestion());
+$router->post('/questionnaire/question', fn () => $questionnaireController->saveQuestion());
+$router->get('/questionnaire/complete', fn () => $questionnaireController->complete());
 
 $router->dispatch($request)->send();

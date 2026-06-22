@@ -101,7 +101,7 @@ final class IntroConsentController
 
         Session::flash('status', 'Consent saved.');
 
-        return Response::redirect('/next-steps');
+        return Response::redirect('/questionnaire/select');
     }
 
     public function nextSteps(): Response

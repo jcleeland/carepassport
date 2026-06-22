@@ -6,10 +6,11 @@
 
 <div class="panel">
     <p>The profile and consent details for <?= $view->escape($resident['preferred_name'] ?: $resident['full_name']) ?> have been saved.</p>
-    <p>The questionnaire flow is not part of this slice. It will be added in the next product workflow step.</p>
+    <p>You can now choose a question path. Every question is optional.</p>
 </div>
 
 <div class="actions">
-    <a class="button" href="/consent">Review consent</a>
+    <a class="button" href="/questionnaire/select">Choose question path</a>
+    <a href="/consent">Review consent</a>
     <a href="/resident/edit">Back to profile</a>
 </div>
