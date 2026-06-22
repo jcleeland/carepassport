@@ -37,6 +37,7 @@ final class PhotoController
             'title' => 'Portrait photo',
             'resident' => $resident,
             'photo' => $this->photos->portraitForResident((int) $resident['id']),
+            'uploadMaxLabel' => $this->processor->effectiveMaxUploadLabel(),
             'errors' => [],
             'status' => Session::pullFlash('status'),
         ]));
@@ -61,6 +62,7 @@ final class PhotoController
                 'title' => 'Portrait photo',
                 'resident' => $resident,
                 'photo' => $existingPhoto,
+                'uploadMaxLabel' => $this->processor->effectiveMaxUploadLabel(),
                 'errors' => ['portrait_photo' => $exception->getMessage()],
                 'status' => null,
             ]), 422);

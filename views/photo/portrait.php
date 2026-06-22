@@ -22,7 +22,7 @@
     <div class="field">
         <label for="portrait_photo">Choose a photo</label>
         <input id="portrait_photo" name="portrait_photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-        <div class="hint">JPG, PNG or WebP. Maximum 5 MB. A square version will be prepared for printed outputs.</div>
+        <div class="hint">JPG, PNG or WebP. Maximum <?= $view->escape($uploadMaxLabel ?? '5 MB') ?>. A square version will be prepared for printed outputs.</div>
         <?php if (isset($errors['portrait_photo'])): ?><div class="error"><?= $view->escape($errors['portrait_photo']) ?></div><?php endif; ?>
     </div>
 

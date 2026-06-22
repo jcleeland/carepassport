@@ -20,6 +20,16 @@ final class PortraitImageProcessor
     {
     }
 
+    public function effectiveMaxUploadBytes(): int
+    {
+        return UploadLimits::effectiveFileBytes((int) $this->config['max_upload_bytes']);
+    }
+
+    public function effectiveMaxUploadLabel(): string
+    {
+        return UploadLimits::formatBytes($this->effectiveMaxUploadBytes());
+    }
+
     /**
      * @param array<string, mixed> $file
      * @return array{original_path:string,processed_path:string}
@@ -67,7 +77,17 @@ final class PortraitImageProcessor
         $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
 
         if ($error === UPLOAD_ERR_NO_FILE) {
+            $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+
+            if ($contentLength > $this->effectiveMaxUploadBytes()) {
+                throw new \InvalidArgumentException('The photo is larger than this server currently allows. Maximum size is ' . $this->effectiveMaxUploadLabel() . '.');
+            }
+
             throw new \InvalidArgumentException('Choose a portrait photo to upload.');
+        }
+
+        if (in_array($error, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+            throw new \InvalidArgumentException('The photo is larger than this server currently allows. Maximum size is ' . $this->effectiveMaxUploadLabel() . '.');
         }
 
         if ($error !== UPLOAD_ERR_OK) {
@@ -80,8 +100,8 @@ final class PortraitImageProcessor
             throw new \InvalidArgumentException('The selected file is empty.');
         }
 
-        if ($size > (int) $this->config['max_upload_bytes']) {
-            throw new \InvalidArgumentException('The photo must be 5 MB or smaller.');
+        if ($size > $this->effectiveMaxUploadBytes()) {
+            throw new \InvalidArgumentException('The photo must be ' . $this->effectiveMaxUploadLabel() . ' or smaller.');
         }
 
         $tmpName = (string) ($file['tmp_name'] ?? '');
