@@ -12,16 +12,55 @@ $visibleZones = array_values(array_filter(
         && $zone['answers'] !== [],
 ));
 
+$zoneLimits = [
+    'photo_caption' => 120,
+    'what_to_call_me' => 180,
+    'life_in_brief' => 130,
+    'talk_to_me_about' => 180,
+    'feel_good_or_comfortable' => 180,
+    'please_know' => 180,
+];
+$shorten = static function (string $text, int $limit): string {
+    $text = trim(preg_replace('/\s+/', ' ', $text) ?? $text);
+
+    if (mb_strlen($text) <= $limit) {
+        return $text;
+    }
+
+    $cut = mb_substr($text, 0, $limit);
+    $lastSpace = mb_strrpos($cut, ' ');
+
+    if ($lastSpace !== false && $lastSpace > (int) floor($limit * 0.65)) {
+        $cut = mb_substr($cut, 0, $lastSpace);
+    }
+
+    return rtrim($cut, " \t\n\r\0\x0B.,;:") . '...';
+};
+$zoneAnswerText = static function (array $zone) use ($shorten, $zoneLimits): array {
+    $limit = $zoneLimits[$zone['zone_key']] ?? 260;
+
+    return array_map(
+        static fn (array $answer): string => $shorten((string) $answer['answer_text'], $limit),
+        $zone['answers'],
+    );
+};
 $captionZone = $zoneByKey['photo_caption'] ?? null;
 $caption = ($captionZone !== null && ($captionZone['answers'][0]['answer_text'] ?? '') !== '')
-    ? $captionZone['answers'][0]['answer_text']
+    ? $shorten((string) $captionZone['answers'][0]['answer_text'], $zoneLimits['photo_caption'])
     : null;
 $preferredName = trim((string) ($resident['preferred_name'] ?: $resident['full_name']));
 ?>
 
-<div class="actions output-actions">
-    <a href="/questionnaire/review">Back to review and visibility</a>
-    <a href="/photo/portrait">Back to photo upload</a>
+<div class="output-toolbar">
+    <div>
+        <h1>Poster A preview</h1>
+        <p>Use your browser print dialog and choose Save as PDF if you want a local PDF copy. For best results, print at actual size with background graphics enabled.</p>
+    </div>
+    <div class="actions output-actions">
+        <button type="button" onclick="window.print()">Print / Save as PDF</button>
+        <a href="/questionnaire/review">Back to review and visibility</a>
+        <a href="/photo/portrait">Back to photo upload</a>
+    </div>
 </div>
 
 <article class="poster-a-preview" aria-label="<?= $view->escape($outputTemplate['title']) ?>">
@@ -33,6 +72,10 @@ $preferredName = trim((string) ($resident['preferred_name'] ?: $resident['full_n
         <?php if ($photo !== null): ?>
             <div class="poster-a-photo-wrap">
                 <img src="/photo/portrait/preview" alt="Portrait of <?= $view->escape($preferredName) ?>" class="poster-a-photo">
+            </div>
+        <?php else: ?>
+            <div class="poster-a-photo-fallback" aria-hidden="true">
+                <span><?= $view->escape(mb_substr($preferredName !== '' ? $preferredName : 'Care Passport', 0, 1)) ?></span>
             </div>
         <?php endif; ?>
 
@@ -52,8 +95,8 @@ $preferredName = trim((string) ($resident['preferred_name'] ?: $resident['full_n
             <?php foreach ($visibleZones as $zone): ?>
                 <section class="poster-a-zone poster-a-zone-<?= $view->escape($zone['zone_key']) ?>">
                     <h2><?= $view->escape($zone['label']) ?></h2>
-                    <?php foreach ($zone['answers'] as $answer): ?>
-                        <p><?= nl2br($view->escape($answer['answer_text'])) ?></p>
+                    <?php foreach ($zoneAnswerText($zone) as $answerText): ?>
+                        <p><?= $view->escape($answerText) ?></p>
                     <?php endforeach; ?>
                 </section>
             <?php endforeach; ?>

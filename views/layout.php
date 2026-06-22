@@ -248,30 +248,55 @@
             width: 100%;
         }
 
-        .output-actions {
+        .output-toolbar {
+            align-items: end;
+            display: flex;
+            gap: 18px;
+            justify-content: space-between;
             margin-bottom: 18px;
         }
 
+        .output-toolbar h1 {
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .output-toolbar p {
+            color: var(--muted);
+            margin-bottom: 0;
+            max-width: 620px;
+        }
+
+        .output-actions {
+            justify-content: flex-end;
+            margin-top: 0;
+        }
+
         .poster-a-preview {
+            --poster-accent: #2f6f5e;
+            --poster-soft: #eef6f2;
             background: #ffffff;
-            border: 1px solid var(--border);
+            border: 1px solid #cfd8d2;
             box-shadow: 0 10px 30px rgba(29, 42, 36, .08);
             display: grid;
-            gap: 7mm;
+            gap: 5mm;
+            grid-template-rows: auto auto 1fr auto;
+            height: 297mm;
             margin: 0 auto;
-            min-height: 297mm;
+            overflow: hidden;
             padding: 12mm;
             width: 210mm;
         }
 
         .poster-a-header {
-            border-bottom: 2px solid var(--ink);
+            border-bottom: 2px solid var(--poster-accent);
             margin: 0;
-            padding: 0 0 4mm;
+            padding: 0 0 3mm;
         }
 
         .poster-a-header p {
-            font-size: 24pt;
+            color: var(--poster-accent);
+            font-size: 28pt;
             font-weight: 800;
             letter-spacing: 0;
             line-height: 1.05;
@@ -281,12 +306,12 @@
         .poster-a-hero {
             align-items: stretch;
             display: grid;
-            gap: 8mm;
+            gap: 7mm;
             grid-template-columns: minmax(0, 70mm) 1fr;
         }
 
         .poster-a-hero-without-photo {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 42mm) 1fr;
         }
 
         .poster-a-photo-wrap {
@@ -302,6 +327,24 @@
             width: 70mm;
         }
 
+        .poster-a-photo-fallback {
+            align-items: center;
+            aspect-ratio: 4 / 5;
+            background: var(--poster-soft);
+            border: 1px solid #c9ddd4;
+            border-radius: 3mm;
+            color: var(--poster-accent);
+            display: flex;
+            justify-content: center;
+            width: 42mm;
+        }
+
+        .poster-a-photo-fallback span {
+            font-size: 40pt;
+            font-weight: 800;
+            line-height: 1;
+        }
+
         .poster-a-name-block {
             align-self: center;
         }
@@ -314,7 +357,7 @@
         }
 
         .poster-a-name-block h1 {
-            font-size: 38pt;
+            font-size: 42pt;
             line-height: 1;
             margin: 0;
             overflow-wrap: anywhere;
@@ -325,17 +368,21 @@
             font-weight: 650;
             line-height: 1.25;
             margin: 5mm 0 0;
+            max-width: 96mm;
         }
 
         .poster-a-zone-grid {
+            align-content: start;
             display: grid;
-            gap: 5mm;
+            gap: 4.5mm 5mm;
             grid-template-columns: 1fr 1fr;
+            overflow: hidden;
         }
 
         .poster-a-zone {
-            border-top: 1px solid var(--border);
-            padding-top: 3mm;
+            border-left: 3px solid var(--poster-accent);
+            min-width: 0;
+            padding: 0 0 0 3mm;
         }
 
         .poster-a-zone-life_in_brief,
@@ -344,6 +391,7 @@
         }
 
         .poster-a-zone h2 {
+            color: var(--poster-accent);
             font-size: 13pt;
             line-height: 1.15;
             margin: 0 0 2mm;
@@ -354,11 +402,32 @@
             line-height: 1.28;
             margin: 0 0 2mm;
             overflow-wrap: anywhere;
+            overflow: hidden;
+        }
+
+        .poster-a-zone-what_to_call_me p {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .poster-a-zone-life_in_brief p {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .poster-a-zone-talk_to_me_about p,
+        .poster-a-zone-feel_good_or_comfortable p,
+        .poster-a-zone-please_know p {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .poster-a-footer {
             align-self: end;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid #cfd8d2;
             color: var(--muted);
             font-size: 7pt;
             line-height: 1.25;
@@ -366,8 +435,18 @@
         }
 
         @media (max-width: 900px) {
+            .output-toolbar {
+                align-items: stretch;
+                display: grid;
+            }
+
+            .output-actions {
+                justify-content: flex-start;
+            }
+
             .poster-a-preview {
-                min-height: auto;
+                height: auto;
+                min-height: 297mm;
                 width: 100%;
             }
 
@@ -380,6 +459,11 @@
                 max-width: 260px;
                 width: 100%;
             }
+
+            .poster-a-photo-fallback {
+                max-width: 180px;
+                width: 100%;
+            }
         }
 
         @media print {
@@ -390,10 +474,12 @@
 
             body {
                 background: #ffffff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
 
             body > header,
-            .output-actions {
+            .output-toolbar {
                 display: none;
             }
 
@@ -405,7 +491,8 @@
             .poster-a-preview {
                 border: 0;
                 box-shadow: none;
-                min-height: 297mm;
+                height: 297mm;
+                margin: 0;
                 page-break-after: avoid;
                 page-break-inside: avoid;
                 width: 210mm;
