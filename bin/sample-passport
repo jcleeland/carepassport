@@ -1,0 +1,342 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use CarePassport\Database\Connection;
+
+$config = require dirname(__DIR__) . '/bootstrap/app.php';
+$args = array_slice($argv, 1);
+$action = $args[0] ?? 'create';
+
+const SAMPLE_EMAIL = 'sample.passport@example.test';
+const SAMPLE_PASSWORD = 'SamplePass123!';
+const SAMPLE_PHOTO_PATH = 'storage/app/sample-passport/ellie-hart-portrait.jpg';
+
+if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
+    echo "Usage: php bin/sample-passport [create|remove]\n";
+    echo "\n";
+    echo "Creates or removes one development-only fictional sample passport.\n";
+    echo "Create is allowed only when APP_ENV is local, development or testing.\n";
+    exit(0);
+}
+
+if (! in_array($action, ['create', 'remove'], true)) {
+    echo "Usage: php bin/sample-passport [create|remove]\n";
+    exit(1);
+}
+
+$appEnv = strtolower((string) ($config['app']['env'] ?? 'production'));
+
+if ($action === 'create' && ! in_array($appEnv, ['local', 'development', 'testing'], true)) {
+    fwrite(STDERR, "Refusing to create sample data when APP_ENV={$appEnv}.\n");
+    fwrite(STDERR, "Set APP_ENV=local, development or testing for development sample data.\n");
+    exit(1);
+}
+
+$pdo = Connection::make($config['database']);
+
+if ($action === 'remove') {
+    $removed = removeSamplePassport($pdo);
+    echo "Removed sample passport data.\n";
+    echo "Users removed: {$removed['users']}\n";
+    echo "Residents removed: {$removed['residents']}\n";
+    exit(0);
+}
+
+$removed = removeSamplePassport($pdo);
+$sample = createSamplePassport($pdo);
+writeSamplePhoto();
+
+echo "Created development sample passport.\n";
+
+if ($removed['users'] > 0 || $removed['residents'] > 0) {
+    echo "Previous sample data was replaced.\n";
+}
+
+echo "Login email: " . SAMPLE_EMAIL . "\n";
+echo "Login password: " . SAMPLE_PASSWORD . "\n";
+echo "Resident: {$sample['resident_name']}\n";
+echo "Open the app, log in, then use the dashboard or /output.\n";
+
+/**
+ * @return array{users:int,residents:int}
+ */
+function removeSamplePassport(PDO $pdo): array
+{
+    $userStatement = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
+    $userStatement->execute(['email' => SAMPLE_EMAIL]);
+    $userId = $userStatement->fetchColumn();
+
+    if ($userId === false) {
+        removeSamplePhoto();
+
+        return [
+            'users' => 0,
+            'residents' => 0,
+        ];
+    }
+
+    $residentDelete = $pdo->prepare('DELETE FROM residents WHERE user_id = :user_id');
+    $residentDelete->execute(['user_id' => (int) $userId]);
+    $residents = $residentDelete->rowCount();
+
+    $userDelete = $pdo->prepare('DELETE FROM users WHERE id = :id');
+    $userDelete->execute(['id' => (int) $userId]);
+
+    removeSamplePhoto();
+
+    return [
+        'users' => $userDelete->rowCount(),
+        'residents' => $residents,
+    ];
+}
+
+/**
+ * @return array{resident_name:string}
+ */
+function createSamplePassport(PDO $pdo): array
+{
+    $pdo->beginTransaction();
+
+    try {
+        $userId = createSampleUser($pdo);
+        $residentId = createSampleResident($pdo, $userId);
+        createSampleConsent($pdo, $residentId);
+        createSamplePhotoRow($pdo, $residentId);
+        createSampleAnswers($pdo, $residentId);
+        $pdo->commit();
+
+        return ['resident_name' => 'Eleanor Hart'];
+    } catch (Throwable $exception) {
+        $pdo->rollBack();
+
+        throw $exception;
+    }
+}
+
+function createSampleUser(PDO $pdo): int
+{
+    $statement = $pdo->prepare(
+        'INSERT INTO users (name, email, password_hash)
+        VALUES (:name, :email, :password_hash)',
+    );
+    $statement->execute([
+        'name' => 'Development Sample User',
+        'email' => SAMPLE_EMAIL,
+        'password_hash' => password_hash(SAMPLE_PASSWORD, PASSWORD_DEFAULT),
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function createSampleResident(PDO $pdo, int $userId): int
+{
+    $pathId = requiredId($pdo, 'SELECT id FROM question_paths WHERE slug = :slug LIMIT 1', ['slug' => 'full_37'], 'Full 37 question path');
+    $statement = $pdo->prepare(
+        'INSERT INTO residents (
+            user_id,
+            full_name,
+            preferred_name,
+            support_context,
+            service_location_name,
+            location_reference,
+            primary_supporter_name,
+            notes,
+            question_path_id
+        ) VALUES (
+            :user_id,
+            :full_name,
+            :preferred_name,
+            :support_context,
+            :service_location_name,
+            :location_reference,
+            :primary_supporter_name,
+            :notes,
+            :question_path_id
+        )',
+    );
+    $statement->execute([
+        'user_id' => $userId,
+        'full_name' => 'Eleanor Hart',
+        'preferred_name' => 'Ellie',
+        'support_context' => 'home_care',
+        'service_location_name' => 'Development sample support setting',
+        'location_reference' => 'Sample room or visit reference',
+        'primary_supporter_name' => 'Maya Hart',
+        'notes' => 'DEVELOPMENT SAMPLE DATA - fictional passport for local preview testing.',
+        'question_path_id' => $pathId,
+    ]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function createSampleConsent(PDO $pdo, int $residentId): void
+{
+    $modeId = requiredId($pdo, 'SELECT id FROM completion_modes WHERE slug = :slug LIMIT 1', ['slug' => 'assisted'], 'assisted completion mode');
+    $statement = $pdo->prepare(
+        'INSERT INTO consent_records (
+            resident_id,
+            completion_mode_id,
+            helper_name,
+            helper_relationship,
+            acknowledgement_data,
+            consent_acknowledged_at,
+            consent_text_version
+        ) VALUES (
+            :resident_id,
+            :completion_mode_id,
+            :helper_name,
+            :helper_relationship,
+            :acknowledgement_data,
+            NOW(),
+            :consent_text_version
+        )',
+    );
+    $statement->execute([
+        'resident_id' => $residentId,
+        'completion_mode_id' => $modeId,
+        'helper_name' => 'Maya Hart',
+        'helper_relationship' => 'Daughter',
+        'acknowledgement_data' => json_encode([
+            'development_sample' => true,
+            'privacy_acknowledged' => true,
+            'fictional_data' => true,
+        ], JSON_THROW_ON_ERROR),
+        'consent_text_version' => 'development-sample-v1',
+    ]);
+}
+
+function createSamplePhotoRow(PDO $pdo, int $residentId): void
+{
+    $statement = $pdo->prepare(
+        'INSERT INTO photos (resident_id, type, original_file_path, processed_file_path, caption)
+        VALUES (:resident_id, :type, :original_file_path, :processed_file_path, :caption)',
+    );
+    $statement->execute([
+        'resident_id' => $residentId,
+        'type' => 'portrait',
+        'original_file_path' => SAMPLE_PHOTO_PATH,
+        'processed_file_path' => SAMPLE_PHOTO_PATH,
+        'caption' => 'Development sample portrait',
+    ]);
+}
+
+function createSampleAnswers(PDO $pdo, int $residentId): void
+{
+    $questionStatement = $pdo->prepare('SELECT id FROM questions WHERE canonical_number = :number LIMIT 1');
+    $answerStatement = $pdo->prepare(
+        'INSERT INTO answers (resident_id, question_id, answer_text, skipped, visibility)
+        VALUES (:resident_id, :question_id, :answer_text, :skipped, :visibility)',
+    );
+
+    foreach (sampleAnswers() as $answer) {
+        $questionStatement->execute(['number' => $answer['number']]);
+        $questionId = $questionStatement->fetchColumn();
+
+        if ($questionId === false) {
+            throw new RuntimeException('Missing question number ' . $answer['number'] . '. Run migrations and seeds first.');
+        }
+
+        $answerStatement->execute([
+            'resident_id' => $residentId,
+            'question_id' => (int) $questionId,
+            'answer_text' => $answer['text'],
+            'skipped' => $answer['skipped'] ? 1 : 0,
+            'visibility' => $answer['visibility'],
+        ]);
+    }
+}
+
+/**
+ * @return list<array{number:int,text:string|null,skipped:bool,visibility:string}>
+ */
+function sampleAnswers(): array
+{
+    return [
+        ['number' => 1, 'text' => 'Eleanor Grace Hart', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 2, 'text' => 'Ellie', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 3, 'text' => 'Please do not call me Nora.', 'skipped' => false, 'visibility' => 'private'],
+        ['number' => 4, 'text' => "I grew up near the coast in a busy house with music, cousins and weekend walks to the market.\n\nThe sea still feels settling to me, and I like stories about gardens, weather and old neighbourhood shops.", 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 5, 'text' => 'I was a primary school teacher for many years and later helped run reading groups at the local library.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 6, 'text' => 'I am proud of raising kind children and helping many young readers find confidence.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 7, 'text' => 'Maya and Oliver are my closest family contacts. I also talk often about my late sister June.', 'skipped' => false, 'visibility' => 'private'],
+        ['number' => 8, 'text' => 'I enjoy a gentle chat, but I need quiet time after lunch.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 9, 'text' => 'During personal support, I prefer calm conversation and being told what is happening before it happens.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 10, 'text' => 'Tea in a real cup, garden talk, and old jazz usually lift my mood.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 11, 'text' => 'Rushed voices, clutter near my chair, or people talking over me can leave me unsettled.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 12, 'text' => 'Ask me about roses or children learning to read.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 13, 'text' => 'Gardening, piano, library groups, handwritten letters and Sunday crosswords have all mattered to me.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 14, 'text' => 'I like Ella Fitzgerald, old musicals and watching tennis finals.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 15, 'text' => 'I love poached pears, toast with marmalade and mild tea. I strongly dislike very sweet drinks.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 16, 'text' => 'A good day has a slow morning, a short walk, a phone call with family and time near a sunny window.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 17, 'text' => 'I am more confident when people speak to me as a whole person, not just about tasks.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 18, 'text' => null, 'skipped' => true, 'visibility' => 'booklet'],
+        ['number' => 19, 'text' => 'I need time to ease into the day.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 20, 'text' => 'Around 7:30 am.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 21, 'text' => "Curtains open first, then a few minutes sitting up before standing.\n\nI like washing my face before breakfast and choosing clothes after tea.", 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 22, 'text' => 'Usually around 9:30 pm.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 23, 'text' => 'Soft lamp light, quiet music and knowing my glasses are on the bedside table.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 24, 'text' => null, 'skipped' => true, 'visibility' => 'booklet'],
+        ['number' => 25, 'text' => 'I sometimes wake once overnight and may need a moment to get my bearings.', 'skipped' => false, 'visibility' => 'private'],
+        ['number' => 26, 'text' => null, 'skipped' => true, 'visibility' => 'booklet'],
+        ['number' => 27, 'text' => 'Reading glasses, cardigan, water bottle and a small notebook nearby help me feel settled.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 28, 'text' => 'I prefer a warm room and a low night light.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 29, 'text' => 'Unscented moisturiser is best. Strong perfumes can make me feel uncomfortable.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 30, 'text' => 'I use a walking stick for longer distances and like steady pacing rather than rushing.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 31, 'text' => 'I wear glasses for reading and prefer them kept in their blue case.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 32, 'text' => 'A calm voice, familiar music and a few minutes without too many questions help me settle.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 33, 'text' => 'Good support feels patient, respectful and unhurried. I appreciate being offered choices and time to answer.', 'skipped' => false, 'visibility' => 'booklet'],
+        ['number' => 34, 'text' => 'Please ask before moving my notebook, glasses or family photos.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 35, 'text' => 'A smiling portrait with my green cardigan.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 36, 'text' => 'Teacher, gardener, jazz lover, and proud grandmother.', 'skipped' => false, 'visibility' => 'poster'],
+        ['number' => 37, 'text' => 'Please keep overnight waking details private.', 'skipped' => false, 'visibility' => 'private'],
+    ];
+}
+
+/**
+ * @param array<string,mixed> $params
+ */
+function requiredId(PDO $pdo, string $sql, array $params, string $label): int
+{
+    $statement = $pdo->prepare($sql);
+    $statement->execute($params);
+    $id = $statement->fetchColumn();
+
+    if ($id === false) {
+        throw new RuntimeException('Missing ' . $label . '. Run php bin/migrate and php bin/seed first.');
+    }
+
+    return (int) $id;
+}
+
+function writeSamplePhoto(): void
+{
+    $path = base_path(SAMPLE_PHOTO_PATH);
+    $directory = dirname($path);
+
+    if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
+        throw new RuntimeException('Unable to create sample photo directory: ' . $directory);
+    }
+
+    $jpeg = '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAH/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAqf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/ASP/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/ASP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/Al//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/IV//2gAMAwEAAgADAAAAEP/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QH//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QH//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEAAT8QH//Z';
+
+    if (file_put_contents($path, base64_decode($jpeg, true)) === false) {
+        throw new RuntimeException('Unable to write sample photo: ' . $path);
+    }
+}
+
+function removeSamplePhoto(): void
+{
+    $path = base_path(SAMPLE_PHOTO_PATH);
+
+    if (is_file($path)) {
+        @unlink($path);
+    }
+
+    $directory = dirname($path);
+
+    if (is_dir($directory)) {
+        @rmdir($directory);
+    }
+}

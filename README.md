@@ -109,3 +109,36 @@ php bin/seed
 ```
 
 The current seed file is starter content for the future data-model phase. Run real seeds only after the matching product tables have been created by migrations.
+
+## Development Sample Passport
+
+For local preview testing, create one fictional sample passport:
+
+```sh
+php bin/sample-passport create
+```
+
+This command is development-only. It refuses to create sample data unless `APP_ENV` is `local`, `development` or `testing`.
+
+It creates:
+
+- one sample user: `sample.passport@example.test`
+- password: `SamplePass123!`
+- one fictional resident profile
+- consent/completion context
+- one portrait photo file under `storage/app/sample-passport`
+- a mix of poster-visible, booklet-visible, private and skipped answers
+
+After creating the sample, log in with the sample account and open the dashboard or `/output` to preview:
+
+- Poster A
+- Poster B
+- Full Booklet
+
+Remove the sample data and sample portrait file with:
+
+```sh
+php bin/sample-passport remove
+```
+
+The command uses a fixed sample email and replaces any previous copy of the sample when rerun. Do not use it for production data.
