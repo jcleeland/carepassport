@@ -41,4 +41,14 @@ final class Request
 
         return trim((string) $value);
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function arrayInput(string $key): array
+    {
+        $value = $this->post[$key] ?? [];
+
+        return is_array($value) ? $value : [];
+    }
 }

@@ -7,7 +7,7 @@
 </div>
 
 <div class="actions">
-    <a class="button" href="/questionnaire/question?position=1">Review questions</a>
+    <a class="button" href="/questionnaire/review">Review answers</a>
     <a href="/questionnaire/select">Change path</a>
     <a href="/resident/edit">Back to profile</a>
 </div>

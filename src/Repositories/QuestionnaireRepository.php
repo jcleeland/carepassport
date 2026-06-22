@@ -206,6 +206,72 @@ final class QuestionnaireRepository
         ]);
     }
 
+    /**
+     * @return list<array{
+     *     question_id:int,
+     *     canonical_number:int,
+     *     question_text:string,
+     *     answer_text:string|null,
+     *     skipped:int,
+     *     visibility:string,
+     *     section_id:int,
+     *     section_title:string,
+     *     section_label:string|null,
+     *     section_sort_order:int,
+     *     position:int
+     * }>
+     */
+    public function reviewAnswersForPath(int $residentId, int $pathId): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT
+                question.id AS question_id,
+                question.canonical_number,
+                question.question_text,
+                answer.answer_text,
+                answer.skipped,
+                answer.visibility,
+                section.id AS section_id,
+                section.title AS section_title,
+                section.module_label AS section_label,
+                section.sort_order AS section_sort_order,
+                path_question.path_sort_order AS position
+            FROM answers AS answer
+            INNER JOIN question_path_questions AS path_question
+                ON path_question.question_id = answer.question_id
+            INNER JOIN questions AS question
+                ON question.id = answer.question_id
+            INNER JOIN question_sections AS section
+                ON section.id = question.section_id
+            WHERE answer.resident_id = :resident_id
+                AND path_question.question_path_id = :path_id
+                AND question.active = 1
+                AND section.active = 1
+            ORDER BY section.sort_order ASC, path_question.path_sort_order ASC',
+        );
+        $statement->execute([
+            'resident_id' => $residentId,
+            'path_id' => $pathId,
+        ]);
+
+        return array_map(
+            static fn (array $row): array => [
+                'question_id' => (int) $row['question_id'],
+                'canonical_number' => (int) $row['canonical_number'],
+                'question_text' => (string) $row['question_text'],
+                'answer_text' => $row['answer_text'] !== null ? (string) $row['answer_text'] : null,
+                'skipped' => (int) $row['skipped'],
+                'visibility' => (string) $row['visibility'],
+                'section_id' => (int) $row['section_id'],
+                'section_title' => (string) $row['section_title'],
+                'section_label' => $row['section_label'] !== null ? (string) $row['section_label'] : null,
+                'section_sort_order' => (int) $row['section_sort_order'],
+                'position' => (int) $row['position'],
+            ],
+            $statement->fetchAll(),
+        );
+    }
+
     public function completedCount(int $residentId, int $pathId): int
     {
         $statement = $this->pdo->prepare(

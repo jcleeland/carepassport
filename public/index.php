@@ -52,6 +52,7 @@ $questionnaireController = new QuestionnaireController(
     $temporarySessions,
     $residents,
     $questionnaire,
+    $config['visibility'],
 );
 
 $router = new Router();
@@ -70,5 +71,7 @@ $router->post('/questionnaire/select', fn () => $questionnaireController->storeP
 $router->get('/questionnaire/question', fn () => $questionnaireController->showQuestion());
 $router->post('/questionnaire/question', fn () => $questionnaireController->saveQuestion());
 $router->get('/questionnaire/complete', fn () => $questionnaireController->complete());
+$router->get('/questionnaire/review', fn () => $questionnaireController->review());
+$router->post('/questionnaire/review', fn () => $questionnaireController->updateReview());
 
 $router->dispatch($request)->send();

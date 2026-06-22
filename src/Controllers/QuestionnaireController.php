@@ -20,6 +20,8 @@ final class QuestionnaireController
         private readonly TemporarySessionRepository $temporarySessions,
         private readonly ResidentRepository $residents,
         private readonly QuestionnaireRepository $questionnaire,
+        /** @var array<string, array{label:string, description:string}> */
+        private readonly array $visibilityOptions,
     ) {
     }
 
@@ -112,7 +114,7 @@ final class QuestionnaireController
         }
 
         if ($context['position'] >= $context['total']) {
-            return Response::redirect('/questionnaire/complete');
+            return Response::redirect('/questionnaire/review');
         }
 
         return Response::redirect('/questionnaire/question?position=' . ($context['position'] + 1));
@@ -141,6 +143,62 @@ final class QuestionnaireController
             'total' => $total,
             'completed' => $this->questionnaire->completedCount((int) $resident['id'], $path['id']),
         ]));
+    }
+
+    public function review(): Response
+    {
+        $context = $this->reviewContext();
+
+        if ($context instanceof Response) {
+            return $context;
+        }
+
+        return new Response($this->view->render('questionnaire/review', $context + [
+            'title' => 'Review answers',
+            'status' => Session::pullFlash('status'),
+        ]));
+    }
+
+    public function updateReview(): Response
+    {
+        $context = $this->reviewContext();
+
+        if ($context instanceof Response) {
+            return $context;
+        }
+
+        $answerTextByQuestion = $this->request->arrayInput('answer_text');
+        $visibilityByQuestion = $this->request->arrayInput('visibility');
+        $visibilityKeys = array_keys($this->visibilityOptions);
+
+        foreach ($context['answers'] as $answer) {
+            $questionId = (int) $answer['question_id'];
+            $key = (string) $questionId;
+            $answerText = $answerTextByQuestion[$key] ?? '';
+
+            if (is_array($answerText)) {
+                $answerText = '';
+            }
+
+            $answerText = trim((string) $answerText);
+            $visibility = $visibilityByQuestion[$key] ?? $answer['visibility'];
+
+            if (is_array($visibility) || ! in_array($visibility, $visibilityKeys, true)) {
+                $visibility = 'booklet';
+            }
+
+            $this->questionnaire->saveAnswer(
+                (int) $context['resident']['id'],
+                $questionId,
+                $answerText !== '' ? $answerText : null,
+                $answerText === '',
+                (string) $visibility,
+            );
+        }
+
+        Session::flash('status', 'Review saved.');
+
+        return Response::redirect('/questionnaire/review');
     }
 
     /**
@@ -177,6 +235,52 @@ final class QuestionnaireController
             'position' => $position,
             'total' => $total,
             'completed' => $this->questionnaire->completedCount((int) $resident['id'], $path['id']),
+        ];
+    }
+
+    /**
+     * @return array<string,mixed>|Response
+     */
+    private function reviewContext(): array|Response
+    {
+        $resident = $this->currentResident();
+
+        if ($resident === null) {
+            return Response::redirect('/resident/new');
+        }
+
+        $path = $this->selectedPath($resident);
+
+        if ($path === null) {
+            return Response::redirect('/questionnaire/select');
+        }
+
+        $answers = $this->questionnaire->reviewAnswersForPath((int) $resident['id'], $path['id']);
+        $sections = [];
+
+        foreach ($answers as $answer) {
+            $sectionId = (int) $answer['section_id'];
+
+            if (! isset($sections[$sectionId])) {
+                $sections[$sectionId] = [
+                    'id' => $sectionId,
+                    'title' => $answer['section_title'],
+                    'label' => $answer['section_label'],
+                    'answers' => [],
+                ];
+            }
+
+            $sections[$sectionId]['answers'][] = $answer;
+        }
+
+        return [
+            'resident' => $resident,
+            'path' => $path,
+            'answers' => $answers,
+            'sections' => array_values($sections),
+            'visibilityOptions' => $this->visibilityOptions,
+            'completed' => $this->questionnaire->completedCount((int) $resident['id'], $path['id']),
+            'total' => $this->questionnaire->questionCount($path['id']),
         ];
     }
 
