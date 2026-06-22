@@ -46,6 +46,28 @@ final class OutputController
         ]));
     }
 
+    public function posterB(): Response
+    {
+        $resident = $this->currentResident();
+
+        if ($resident === null) {
+            return Response::redirect('/resident/new');
+        }
+
+        $poster = $this->outputs->posterTemplateForResident('poster_b', (int) $resident['id']);
+
+        if ($poster === null) {
+            return new Response('Poster template not found', 404);
+        }
+
+        return new Response($this->view->render('output/poster-b', [
+            'title' => $poster['template']['title'],
+            'resident' => $resident,
+            'outputTemplate' => $poster['template'],
+            'zones' => $poster['zones'],
+        ]));
+    }
+
     /**
      * @return array<string, mixed>|null
      */

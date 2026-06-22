@@ -434,6 +434,99 @@
             padding-top: 3mm;
         }
 
+        .poster-b-preview {
+            --poster-b-accent: #375a74;
+            --poster-b-soft: #edf4f8;
+            background: #ffffff;
+            border: 1px solid #cfd8d2;
+            box-shadow: 0 10px 30px rgba(29, 42, 36, .08);
+            display: grid;
+            gap: 5mm;
+            grid-template-rows: auto 1fr auto;
+            height: 297mm;
+            margin: 0 auto;
+            overflow: hidden;
+            padding: 12mm;
+            width: 210mm;
+        }
+
+        .poster-b-header {
+            border-bottom: 2px solid var(--poster-b-accent);
+            padding-bottom: 4mm;
+        }
+
+        .poster-b-header p {
+            color: var(--poster-b-accent);
+            font-size: 25pt;
+            font-weight: 800;
+            line-height: 1.08;
+            margin: 0 0 2mm;
+        }
+
+        .poster-b-header h1 {
+            font-size: 21pt;
+            line-height: 1.1;
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .poster-b-zone-grid {
+            align-content: start;
+            display: grid;
+            gap: 5mm;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+        }
+
+        .poster-b-zone {
+            background: var(--poster-b-soft);
+            border: 1px solid #c8d8e1;
+            border-radius: 3mm;
+            min-width: 0;
+            overflow: hidden;
+            padding: 4mm;
+        }
+
+        .poster-b-zone h2 {
+            color: var(--poster-b-accent);
+            font-size: 14pt;
+            line-height: 1.12;
+            margin: 0 0 2.5mm;
+        }
+
+        .poster-b-zone p {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 4;
+            font-size: 10.8pt;
+            line-height: 1.25;
+            margin: 0 0 2.5mm;
+            overflow: hidden;
+            overflow-wrap: anywhere;
+        }
+
+        .poster-b-empty {
+            align-self: center;
+            background: var(--poster-b-soft);
+            border: 1px solid #c8d8e1;
+            border-radius: 3mm;
+            padding: 8mm;
+        }
+
+        .poster-b-empty h2 {
+            color: var(--poster-b-accent);
+            margin-bottom: 3mm;
+        }
+
+        .poster-b-footer {
+            align-self: end;
+            border-top: 1px solid #cfd8d2;
+            color: var(--muted);
+            font-size: 7pt;
+            line-height: 1.25;
+            padding-top: 3mm;
+        }
+
         @media (max-width: 900px) {
             .output-toolbar {
                 align-items: stretch;
@@ -450,8 +543,15 @@
                 width: 100%;
             }
 
+            .poster-b-preview {
+                height: auto;
+                min-height: 297mm;
+                width: 100%;
+            }
+
             .poster-a-hero,
-            .poster-a-zone-grid {
+            .poster-a-zone-grid,
+            .poster-b-zone-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -489,6 +589,16 @@
             }
 
             .poster-a-preview {
+                border: 0;
+                box-shadow: none;
+                height: 297mm;
+                margin: 0;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                width: 210mm;
+            }
+
+            .poster-b-preview {
                 border: 0;
                 box-shadow: none;
                 height: 297mm;
