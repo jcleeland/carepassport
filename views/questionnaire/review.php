@@ -69,6 +69,7 @@
 
         <div class="actions">
             <button type="submit">Save review</button>
+            <a class="button" href="/photo/portrait">Continue to photo</a>
             <a href="/questionnaire/question?position=1">Back to questions</a>
             <a href="/questionnaire/select">Change path</a>
         </div>

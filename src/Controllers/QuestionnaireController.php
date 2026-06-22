@@ -198,7 +198,7 @@ final class QuestionnaireController
 
         Session::flash('status', 'Review saved.');
 
-        return Response::redirect('/questionnaire/review');
+        return Response::redirect('/photo/portrait');
     }
 
     /**

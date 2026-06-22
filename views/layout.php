@@ -161,6 +161,17 @@
             font-size: .94rem;
             margin-top: 3px;
         }
+
+        .portrait-preview {
+            aspect-ratio: 1 / 1;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: block;
+            height: auto;
+            max-width: 280px;
+            object-fit: cover;
+            width: 100%;
+        }
     </style>
 </head>
 <body>

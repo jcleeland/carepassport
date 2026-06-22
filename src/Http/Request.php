@@ -51,4 +51,14 @@ final class Request
 
         return is_array($value) ? $value : [];
     }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function file(string $key): ?array
+    {
+        $file = $_FILES[$key] ?? null;
+
+        return is_array($file) ? $file : null;
+    }
 }

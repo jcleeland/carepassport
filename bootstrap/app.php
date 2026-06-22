@@ -52,5 +52,6 @@ Env::load(base_path('.env'));
 return [
     'app' => require base_path('config/app.php'),
     'database' => require base_path('config/database.php'),
+    'photo' => require base_path('config/photo.php'),
     'visibility' => require base_path('config/visibility.php'),
 ];

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use CarePassport\Controllers\IntroConsentController;
+use CarePassport\Controllers\PhotoController;
 use CarePassport\Controllers\QuestionnaireController;
 use CarePassport\Controllers\ResidentController;
 use CarePassport\Controllers\StartController;
@@ -13,10 +14,12 @@ use CarePassport\Http\Session;
 use CarePassport\Repositories\CompletionModeRepository;
 use CarePassport\Repositories\ConsentRecordRepository;
 use CarePassport\Repositories\IntroPageRepository;
+use CarePassport\Repositories\PhotoRepository;
 use CarePassport\Repositories\QuestionnaireRepository;
 use CarePassport\Repositories\ResidentRepository;
 use CarePassport\Repositories\SupportContextRepository;
 use CarePassport\Repositories\TemporarySessionRepository;
+use CarePassport\Support\PortraitImageProcessor;
 use CarePassport\View\View;
 
 $config = require dirname(__DIR__) . '/bootstrap/app.php';
@@ -34,6 +37,8 @@ $introPages = new IntroPageRepository($pdo);
 $completionModes = new CompletionModeRepository($pdo);
 $consentRecords = new ConsentRecordRepository($pdo);
 $questionnaire = new QuestionnaireRepository($pdo);
+$photos = new PhotoRepository($pdo);
+$portraitProcessor = new PortraitImageProcessor($config['photo']);
 
 $startController = new StartController($view, $temporarySessions);
 $residentController = new ResidentController($view, $request, $temporarySessions, $supportContexts, $residents);
@@ -54,6 +59,14 @@ $questionnaireController = new QuestionnaireController(
     $questionnaire,
     $config['visibility'],
 );
+$photoController = new PhotoController(
+    $view,
+    $request,
+    $temporarySessions,
+    $residents,
+    $photos,
+    $portraitProcessor,
+);
 
 $router = new Router();
 $router->get('/', fn () => $startController->show());
@@ -73,5 +86,9 @@ $router->post('/questionnaire/question', fn () => $questionnaireController->save
 $router->get('/questionnaire/complete', fn () => $questionnaireController->complete());
 $router->get('/questionnaire/review', fn () => $questionnaireController->review());
 $router->post('/questionnaire/review', fn () => $questionnaireController->updateReview());
+$router->get('/photo/portrait', fn () => $photoController->showPortrait());
+$router->post('/photo/portrait', fn () => $photoController->uploadPortrait());
+$router->get('/photo/portrait/preview', fn () => $photoController->previewPortrait());
+$router->get('/photo/portrait/skip', fn () => $photoController->skipPortrait());
 
 $router->dispatch($request)->send();
