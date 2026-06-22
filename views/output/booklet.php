@@ -50,6 +50,7 @@ $answerHtml = static function (string $answer) use ($view): string {
     </div>
     <div class="actions output-actions">
         <button type="button" onclick="window.print()">Print / Save as PDF</button>
+        <a href="/output">Output hub</a>
         <a href="/output/poster-a">Poster A preview</a>
         <a href="/output/poster-b">Poster B preview</a>
         <a href="/questionnaire/review">Back to review and visibility</a>

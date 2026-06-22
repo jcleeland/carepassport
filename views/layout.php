@@ -272,6 +272,75 @@
             margin-top: 0;
         }
 
+        .output-reminder h2 {
+            font-size: 1.35rem;
+            margin-bottom: 8px;
+        }
+
+        .output-summary {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            margin-bottom: 18px;
+        }
+
+        .output-summary div {
+            min-width: 0;
+        }
+
+        .output-summary strong {
+            color: var(--muted);
+            display: block;
+            font-size: .86rem;
+            margin-bottom: 3px;
+        }
+
+        .output-summary span {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .output-card-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            margin-bottom: 18px;
+        }
+
+        .output-card {
+            align-content: start;
+            display: grid;
+            gap: 14px;
+        }
+
+        .output-card h2 {
+            font-size: 1.35rem;
+            line-height: 1.18;
+            margin-bottom: 8px;
+        }
+
+        .output-card p {
+            color: var(--muted);
+            margin-bottom: 0;
+        }
+
+        .output-card-status {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .output-card-status dt {
+            color: var(--muted);
+            font-size: .86rem;
+            font-weight: 800;
+        }
+
+        .output-card-status dd {
+            margin: 2px 0 0;
+        }
+
         .poster-a-preview {
             --poster-accent: #2f6f5e;
             --poster-soft: #eef6f2;

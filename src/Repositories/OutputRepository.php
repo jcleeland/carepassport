@@ -13,6 +13,83 @@ final class OutputRepository
     }
 
     /**
+     * @return array<string,array{id:int,slug:string,title:string,description:string|null}>
+     */
+    public function activeOutputTemplates(): array
+    {
+        $statement = $this->pdo->query(
+            'SELECT id, slug, title, description
+            FROM output_templates
+            WHERE slug IN (\'poster_a\', \'poster_b\', \'full_booklet\')
+                AND active = 1
+            ORDER BY FIELD(slug, \'poster_a\', \'poster_b\', \'full_booklet\')',
+        );
+
+        $templates = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $slug = (string) $row['slug'];
+            $templates[$slug] = [
+                'id' => (int) $row['id'],
+                'slug' => $slug,
+                'title' => (string) $row['title'],
+                'description' => $row['description'] !== null ? (string) $row['description'] : null,
+            ];
+        }
+
+        return $templates;
+    }
+
+    /**
+     * @return array{poster_visible:int,booklet_visible:int,private:int,skipped:int}
+     */
+    public function answerCountsForResident(int $residentId): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT
+                SUM(CASE
+                    WHEN skipped = 0
+                        AND visibility = \'poster\'
+                        AND answer_text IS NOT NULL
+                        AND TRIM(answer_text) <> \'\'
+                    THEN 1 ELSE 0 END) AS poster_visible,
+                SUM(CASE
+                    WHEN skipped = 0
+                        AND visibility = \'booklet\'
+                        AND answer_text IS NOT NULL
+                        AND TRIM(answer_text) <> \'\'
+                    THEN 1 ELSE 0 END) AS booklet_visible,
+                SUM(CASE
+                    WHEN skipped = 0
+                        AND visibility = \'private\'
+                        AND answer_text IS NOT NULL
+                        AND TRIM(answer_text) <> \'\'
+                    THEN 1 ELSE 0 END) AS private_count,
+                SUM(CASE WHEN skipped = 1 THEN 1 ELSE 0 END) AS skipped_count
+            FROM answers
+            WHERE resident_id = :resident_id',
+        );
+        $statement->execute(['resident_id' => $residentId]);
+        $counts = $statement->fetch();
+
+        if (! is_array($counts)) {
+            return [
+                'poster_visible' => 0,
+                'booklet_visible' => 0,
+                'private' => 0,
+                'skipped' => 0,
+            ];
+        }
+
+        return [
+            'poster_visible' => (int) $counts['poster_visible'],
+            'booklet_visible' => (int) $counts['booklet_visible'],
+            'private' => (int) $counts['private_count'],
+            'skipped' => (int) $counts['skipped_count'],
+        ];
+    }
+
+    /**
      * @return array{
      *     template:array{id:int,slug:string,title:string,description:string|null},
      *     zones:list<array{id:int,zone_key:string,label:string,sort_order:int,answers:list<array{question_id:int,canonical_number:int,answer_text:string}>}>

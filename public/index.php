@@ -113,6 +113,7 @@ $router->get('/photo/portrait', fn () => $photoController->showPortrait());
 $router->post('/photo/portrait', fn () => $photoController->uploadPortrait());
 $router->get('/photo/portrait/preview', fn () => $photoController->previewPortrait());
 $router->get('/photo/portrait/skip', fn () => $photoController->skipPortrait());
+$router->get('/output', fn () => $outputController->hub());
 $router->get('/output/poster-a', fn () => $outputController->posterA());
 $router->get('/output/poster-b', fn () => $outputController->posterB());
 $router->get('/output/booklet', fn () => $outputController->booklet());

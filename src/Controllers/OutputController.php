@@ -23,6 +23,27 @@ final class OutputController
     ) {
     }
 
+    public function hub(): Response
+    {
+        $resident = $this->currentResident();
+
+        if ($resident === null) {
+            return Response::redirect('/resident/new');
+        }
+
+        $photo = $this->photos->portraitForResident((int) $resident['id']);
+        $counts = $this->outputs->answerCountsForResident((int) $resident['id']);
+        $templates = $this->outputs->activeOutputTemplates();
+
+        return new Response($this->view->render('output/hub', [
+            'title' => 'Output hub',
+            'resident' => $resident,
+            'photo' => $photo,
+            'counts' => $counts,
+            'cards' => $this->outputCards($templates, $counts, $photo !== null),
+        ]));
+    }
+
     public function posterA(): Response
     {
         $resident = $this->currentResident();
@@ -137,5 +158,48 @@ final class OutputController
         }
 
         return $id;
+    }
+
+    /**
+     * @param array<string,array{id:int,slug:string,title:string,description:string|null}> $templates
+     * @param array{poster_visible:int,booklet_visible:int,private:int,skipped:int} $counts
+     * @return list<array{slug:string,title:string,description:string|null,href:string,status:string,detail:string}>
+     */
+    private function outputCards(array $templates, array $counts, bool $hasPhoto): array
+    {
+        $routes = [
+            'poster_a' => '/output/poster-a',
+            'poster_b' => '/output/poster-b',
+            'full_booklet' => '/output/booklet',
+        ];
+        $cards = [];
+
+        foreach ($routes as $slug => $href) {
+            if (! isset($templates[$slug])) {
+                continue;
+            }
+
+            $posterContent = $counts['poster_visible'];
+            $bookletContent = $counts['poster_visible'] + $counts['booklet_visible'];
+
+            if ($slug === 'full_booklet') {
+                $status = $bookletContent > 0 ? 'Ready to preview' : 'No visible answers yet';
+                $detail = $bookletContent . ' answer' . ($bookletContent === 1 ? '' : 's') . ' available for the booklet.';
+            } else {
+                $status = $posterContent > 0 || $hasPhoto ? 'Ready to preview' : 'No poster-visible answers yet';
+                $detail = $posterContent . ' poster-visible answer' . ($posterContent === 1 ? '' : 's') . ($hasPhoto ? ', with portrait photo.' : ', no portrait photo uploaded.');
+            }
+
+            $cards[] = [
+                'slug' => $slug,
+                'title' => $templates[$slug]['title'],
+                'description' => $templates[$slug]['description'],
+                'href' => $href,
+                'status' => $status,
+                'detail' => $detail,
+            ];
+        }
+
+        return $cards;
     }
 }

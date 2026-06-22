@@ -53,6 +53,7 @@
                     <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=profile">Edit profile</a>
                     <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=review">Review answers</a>
                     <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=photo">Upload or replace photo</a>
+                    <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=output">Output hub</a>
                     <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=poster_a">Preview Poster A</a>
                     <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=poster_b">Preview Poster B</a>
                     <a href="/resident/use?id=<?= $view->escape($resident['id']) ?>&target=booklet">Preview Full Booklet</a>

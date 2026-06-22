@@ -74,6 +74,7 @@ final class DashboardController
             'questionnaire_question' => '/questionnaire/question?position=' . max(1, $position),
             'review' => '/questionnaire/review',
             'photo' => '/photo/portrait',
+            'output' => '/output',
             'poster_a' => '/output/poster-a',
             'poster_b' => '/output/poster-b',
             'booklet' => '/output/booklet',
@@ -118,12 +119,12 @@ final class DashboardController
             $detail = 'Answers can be reviewed. Add a portrait photo when ready.';
             $continueTarget = 'photo';
         } elseif ($hasPosterContent) {
-            $status = 'Poster A preview available';
+            $status = 'Output previews available';
             $detail = 'Portrait and poster-visible content are available for preview.';
-            $continueTarget = 'poster_a';
+            $continueTarget = 'output';
         } else {
             $status = 'Portrait photo uploaded';
-            $detail = 'Review visibility to choose what can appear on Poster A.';
+            $detail = 'Review visibility to choose what can appear in printed outputs.';
             $continueTarget = 'review';
         }
 
