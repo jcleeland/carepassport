@@ -119,13 +119,21 @@ final class PhotoController
     private function currentResident(): ?array
     {
         $temporarySessionId = $this->temporarySessionId();
+        $userId = $this->userId();
         $residentId = (int) Session::get('resident_id', 0);
 
-        if ($temporarySessionId === null || $residentId === 0) {
+        if (($temporarySessionId === null && $userId === null) || $residentId === 0) {
             return null;
         }
 
-        return $this->residents->findForTemporarySession($residentId, $temporarySessionId);
+        return $this->residents->findAccessible($residentId, $temporarySessionId, $userId);
+    }
+
+    private function userId(): ?int
+    {
+        $userId = Session::get('user_id');
+
+        return is_int($userId) && $userId > 0 ? $userId : null;
     }
 
     private function temporarySessionId(): ?int

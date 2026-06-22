@@ -26,6 +26,16 @@ final class Session
         $_SESSION[$key] = $value;
     }
 
+    public static function forget(string $key): void
+    {
+        unset($_SESSION[$key]);
+    }
+
+    public static function regenerate(): void
+    {
+        session_regenerate_id(true);
+    }
+
     public static function flash(string $key, string $message): void
     {
         $_SESSION['_flash'][$key] = $message;

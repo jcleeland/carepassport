@@ -26,8 +26,9 @@ final class ResidentController
     public function create(): Response
     {
         $temporarySessionId = $this->temporarySessionId();
+        $userId = $this->userId();
 
-        if ($temporarySessionId === null) {
+        if ($temporarySessionId === null && $userId === null) {
             return Response::redirect('/');
         }
 
@@ -44,8 +45,9 @@ final class ResidentController
     public function store(): Response
     {
         $temporarySessionId = $this->temporarySessionId();
+        $userId = $this->userId();
 
-        if ($temporarySessionId === null) {
+        if ($temporarySessionId === null && $userId === null) {
             return Response::redirect('/');
         }
 
@@ -62,7 +64,7 @@ final class ResidentController
             ]), 422);
         }
 
-        $residentId = $this->residents->create($temporarySessionId, $data);
+        $residentId = $this->residents->create($temporarySessionId, $userId, $data);
         Session::put('resident_id', $residentId);
         Session::flash('status', 'Profile saved.');
 
@@ -90,9 +92,10 @@ final class ResidentController
     public function update(): Response
     {
         $temporarySessionId = $this->temporarySessionId();
+        $userId = $this->userId();
         $residentId = (int) Session::get('resident_id', 0);
 
-        if ($temporarySessionId === null || $residentId === 0) {
+        if (($temporarySessionId === null && $userId === null) || $residentId === 0) {
             return Response::redirect('/resident/new');
         }
 
@@ -109,7 +112,7 @@ final class ResidentController
             ]), 422);
         }
 
-        $this->residents->update($residentId, $temporarySessionId, $data);
+        $this->residents->updateAccessible($residentId, $temporarySessionId, $userId, $data);
         Session::flash('status', 'Profile updated.');
 
         return Response::redirect('/resident/edit');
@@ -132,19 +135,27 @@ final class ResidentController
         return $id;
     }
 
+    private function userId(): ?int
+    {
+        $userId = Session::get('user_id');
+
+        return is_int($userId) && $userId > 0 ? $userId : null;
+    }
+
     /**
      * @return array<string, mixed>|null
      */
     private function currentResident(): ?array
     {
         $temporarySessionId = $this->temporarySessionId();
+        $userId = $this->userId();
         $residentId = (int) Session::get('resident_id', 0);
 
-        if ($temporarySessionId === null || $residentId === 0) {
+        if (($temporarySessionId === null && $userId === null) || $residentId === 0) {
             return null;
         }
 
-        return $this->residents->findForTemporarySession($residentId, $temporarySessionId);
+        return $this->residents->findAccessible($residentId, $temporarySessionId, $userId);
     }
 
     /**

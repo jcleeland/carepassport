@@ -68,8 +68,12 @@ final class QuestionnaireController
             ]), 422);
         }
 
-        $temporarySessionId = $this->temporarySessionId();
-        $this->residents->setQuestionPath((int) $resident['id'], (int) $temporarySessionId, $path['id']);
+        $this->residents->setQuestionPathAccessible(
+            (int) $resident['id'],
+            $this->temporarySessionId(),
+            $this->userId(),
+            $path['id'],
+        );
 
         return Response::redirect('/questionnaire/question?position=1');
     }
@@ -301,13 +305,21 @@ final class QuestionnaireController
     private function currentResident(): ?array
     {
         $temporarySessionId = $this->temporarySessionId();
+        $userId = $this->userId();
         $residentId = (int) Session::get('resident_id', 0);
 
-        if ($temporarySessionId === null || $residentId === 0) {
+        if (($temporarySessionId === null && $userId === null) || $residentId === 0) {
             return null;
         }
 
-        return $this->residents->findForTemporarySession($residentId, $temporarySessionId);
+        return $this->residents->findAccessible($residentId, $temporarySessionId, $userId);
+    }
+
+    private function userId(): ?int
+    {
+        $userId = Session::get('user_id');
+
+        return is_int($userId) && $userId > 0 ? $userId : null;
     }
 
     private function temporarySessionId(): ?int

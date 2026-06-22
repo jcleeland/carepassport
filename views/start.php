@@ -7,6 +7,13 @@
     <form method="post" action="/start">
         <div class="actions">
             <button type="submit">Start temporary session</button>
+            <?php if (\CarePassport\Http\Session::get('user_id') !== null): ?>
+                <a href="/resident/new">Create a saved profile</a>
+                <a href="/dashboard">Dashboard</a>
+            <?php else: ?>
+                <a href="/register">Create account</a>
+                <a href="/login">Log in</a>
+            <?php endif; ?>
         </div>
     </form>
 </div>

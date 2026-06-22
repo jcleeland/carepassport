@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use CarePassport\Controllers\AuthController;
+use CarePassport\Controllers\DashboardController;
 use CarePassport\Controllers\IntroConsentController;
 use CarePassport\Controllers\OutputController;
 use CarePassport\Controllers\PhotoController;
@@ -21,6 +23,7 @@ use CarePassport\Repositories\QuestionnaireRepository;
 use CarePassport\Repositories\ResidentRepository;
 use CarePassport\Repositories\SupportContextRepository;
 use CarePassport\Repositories\TemporarySessionRepository;
+use CarePassport\Repositories\UserRepository;
 use CarePassport\Support\PortraitImageProcessor;
 use CarePassport\View\View;
 
@@ -33,6 +36,7 @@ $pdo = Connection::make($config['database']);
 $view = new View();
 
 $temporarySessions = new TemporarySessionRepository($pdo);
+$users = new UserRepository($pdo);
 $supportContexts = new SupportContextRepository($pdo);
 $residents = new ResidentRepository($pdo);
 $introPages = new IntroPageRepository($pdo);
@@ -45,6 +49,8 @@ $portraitProcessor = new PortraitImageProcessor($config['photo']);
 
 $startController = new StartController($view, $temporarySessions);
 $residentController = new ResidentController($view, $request, $temporarySessions, $supportContexts, $residents);
+$authController = new AuthController($view, $request, $users, $residents, $temporarySessions);
+$dashboardController = new DashboardController($view, $request, $residents);
 $introConsentController = new IntroConsentController(
     $view,
     $request,
@@ -81,6 +87,13 @@ $outputController = new OutputController(
 $router = new Router();
 $router->get('/', fn () => $startController->show());
 $router->post('/start', fn () => $startController->start());
+$router->get('/register', fn () => $authController->registerForm());
+$router->post('/register', fn () => $authController->register());
+$router->get('/login', fn () => $authController->loginForm());
+$router->post('/login', fn () => $authController->login());
+$router->post('/logout', fn () => $authController->logout());
+$router->get('/dashboard', fn () => $dashboardController->show());
+$router->get('/resident/use', fn () => $dashboardController->useResident());
 $router->get('/resident/new', fn () => $residentController->create());
 $router->post('/resident', fn () => $residentController->store());
 $router->get('/resident/edit', fn () => $residentController->edit());

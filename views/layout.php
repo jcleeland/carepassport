@@ -37,6 +37,32 @@
             border-bottom: 1px solid var(--border);
         }
 
+        header {
+            align-items: center;
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+        }
+
+        .top-nav {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .top-nav form {
+            margin: 0;
+        }
+
+        .link-button {
+            background: transparent;
+            color: var(--accent);
+            font-weight: 400;
+            padding: 0;
+            text-decoration: underline;
+        }
+
         h1 {
             margin: 0 0 12px;
             font-size: clamp(2rem, 5vw, 3.25rem);
@@ -140,6 +166,55 @@
 
         .section {
             margin-bottom: 18px;
+        }
+
+        .dashboard-list {
+            display: grid;
+            gap: 18px;
+        }
+
+        .dashboard-card {
+            display: grid;
+            gap: 16px;
+        }
+
+        .dashboard-card-main {
+            align-items: start;
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+        }
+
+        .dashboard-card-main h2 {
+            margin-bottom: 6px;
+        }
+
+        .dashboard-meta {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            margin: 0;
+        }
+
+        .dashboard-meta dt {
+            color: var(--muted);
+            font-size: .86rem;
+            font-weight: 700;
+        }
+
+        .dashboard-meta dd {
+            margin: 2px 0 0;
+        }
+
+        .status-pill {
+            background: #e5f1ec;
+            border: 1px solid #b8d6ca;
+            border-radius: 999px;
+            color: var(--ink);
+            font-size: .9rem;
+            font-weight: 700;
+            padding: 6px 10px;
+            white-space: nowrap;
         }
 
         .option {
@@ -341,6 +416,17 @@
 <body>
     <header>
         <strong>Care Passport</strong>
+        <nav class="top-nav" aria-label="Account">
+            <?php if (\CarePassport\Http\Session::get('user_id') !== null): ?>
+                <a href="/dashboard">Dashboard</a>
+                <form method="post" action="/logout">
+                    <button type="submit" class="link-button">Log out</button>
+                </form>
+            <?php else: ?>
+                <a href="/login">Log in</a>
+                <a href="/register">Create account</a>
+            <?php endif; ?>
+        </nav>
     </header>
     <main>
         <?= $content ?>
