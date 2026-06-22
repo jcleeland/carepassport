@@ -2,23 +2,58 @@
 
 declare(strict_types=1);
 
+use CarePassport\Controllers\IntroConsentController;
+use CarePassport\Controllers\ResidentController;
+use CarePassport\Controllers\StartController;
+use CarePassport\Database\Connection;
+use CarePassport\Http\Request;
+use CarePassport\Http\Router;
+use CarePassport\Http\Session;
+use CarePassport\Repositories\CompletionModeRepository;
+use CarePassport\Repositories\ConsentRecordRepository;
+use CarePassport\Repositories\IntroPageRepository;
+use CarePassport\Repositories\ResidentRepository;
+use CarePassport\Repositories\SupportContextRepository;
+use CarePassport\Repositories\TemporarySessionRepository;
+use CarePassport\View\View;
+
 $config = require dirname(__DIR__) . '/bootstrap/app.php';
-$app = $config['app'];
 
-$escape = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+Session::start((string) $config['app']['session_name']);
 
-?><!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $escape($app['name']) ?></title>
-</head>
-<body>
-    <main style="font-family: system-ui, sans-serif; max-width: 760px; margin: 4rem auto; padding: 0 1rem; line-height: 1.5;">
-        <h1><?= $escape($app['name']) ?></h1>
-        <p>Foundation bootstrap is installed. Implement the MVP from the documentation in <code>docs/</code>.</p>
-        <p>Environment: <code><?= $escape($app['env']) ?></code></p>
-    </main>
-</body>
-</html>
+$request = Request::capture();
+$pdo = Connection::make($config['database']);
+$view = new View();
+
+$temporarySessions = new TemporarySessionRepository($pdo);
+$supportContexts = new SupportContextRepository($pdo);
+$residents = new ResidentRepository($pdo);
+$introPages = new IntroPageRepository($pdo);
+$completionModes = new CompletionModeRepository($pdo);
+$consentRecords = new ConsentRecordRepository($pdo);
+
+$startController = new StartController($view, $temporarySessions);
+$residentController = new ResidentController($view, $request, $temporarySessions, $supportContexts, $residents);
+$introConsentController = new IntroConsentController(
+    $view,
+    $request,
+    $temporarySessions,
+    $residents,
+    $introPages,
+    $completionModes,
+    $consentRecords,
+);
+
+$router = new Router();
+$router->get('/', fn () => $startController->show());
+$router->post('/start', fn () => $startController->start());
+$router->get('/resident/new', fn () => $residentController->create());
+$router->post('/resident', fn () => $residentController->store());
+$router->get('/resident/edit', fn () => $residentController->edit());
+$router->post('/resident/update', fn () => $residentController->update());
+$router->get('/intro', fn () => $introConsentController->intro());
+$router->get('/consent', fn () => $introConsentController->consent());
+$router->post('/consent', fn () => $introConsentController->storeConsent());
+$router->get('/next-steps', fn () => $introConsentController->nextSteps());
+
+$router->dispatch($request)->send();
