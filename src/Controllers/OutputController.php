@@ -68,6 +68,37 @@ final class OutputController
         ]));
     }
 
+    public function booklet(): Response
+    {
+        $resident = $this->currentResident();
+
+        if ($resident === null) {
+            return Response::redirect('/resident/new');
+        }
+
+        $booklet = $this->outputs->bookletTemplateForResident((int) $resident['id']);
+
+        if ($booklet === null) {
+            return new Response('Booklet template not found', 404);
+        }
+
+        $supportContext = null;
+
+        if (isset($resident['support_context']) && is_string($resident['support_context']) && $resident['support_context'] !== '') {
+            $supportContext = $this->outputs->supportContext($resident['support_context']);
+        }
+
+        return new Response($this->view->render('output/booklet', [
+            'title' => $booklet['template']['title'],
+            'resident' => $resident,
+            'outputTemplate' => $booklet['template'],
+            'sections' => $booklet['sections'],
+            'photo' => $this->photos->portraitForResident((int) $resident['id']),
+            'supportContext' => $supportContext,
+            'completionContext' => $this->outputs->latestCompletionContextForResident((int) $resident['id']),
+        ]));
+    }
+
     /**
      * @return array<string, mixed>|null
      */

@@ -527,6 +527,160 @@
             padding-top: 3mm;
         }
 
+        .booklet-preview {
+            --booklet-accent: #334f5d;
+            --booklet-soft: #eef4f5;
+            display: grid;
+            gap: 14mm;
+            margin: 0 auto;
+            width: 210mm;
+        }
+
+        .booklet-page {
+            background: #ffffff;
+            border: 1px solid #cfd8d2;
+            box-shadow: 0 10px 30px rgba(29, 42, 36, .08);
+            min-height: 297mm;
+            padding: 15mm;
+            page-break-after: always;
+            width: 210mm;
+        }
+
+        .booklet-page h1 {
+            color: var(--booklet-accent);
+            font-size: 24pt;
+            line-height: 1.1;
+            margin: 0 0 7mm;
+            overflow-wrap: anywhere;
+        }
+
+        .booklet-page h2 {
+            color: var(--ink);
+            font-size: 12.5pt;
+            line-height: 1.22;
+            margin: 0 0 2mm;
+            overflow-wrap: anywhere;
+        }
+
+        .booklet-page p {
+            font-size: 10.7pt;
+            line-height: 1.5;
+            margin: 0 0 5mm;
+            overflow-wrap: anywhere;
+        }
+
+        .booklet-cover {
+            display: grid;
+            grid-template-rows: auto 1fr auto auto;
+            gap: 9mm;
+        }
+
+        .booklet-cover-mark {
+            border-bottom: 2px solid var(--booklet-accent);
+            color: var(--booklet-accent);
+            font-size: 12pt;
+            font-weight: 800;
+            letter-spacing: 0;
+            padding-bottom: 4mm;
+        }
+
+        .booklet-cover-layout {
+            align-items: center;
+            display: grid;
+            gap: 9mm;
+            grid-template-columns: 58mm 1fr;
+        }
+
+        .booklet-cover-without-photo {
+            grid-template-columns: 1fr;
+        }
+
+        .booklet-photo {
+            aspect-ratio: 4 / 5;
+            border-radius: 3mm;
+            display: block;
+            height: auto;
+            object-fit: cover;
+            width: 58mm;
+        }
+
+        .booklet-cover-copy h1 {
+            color: var(--ink);
+            font-size: 32pt;
+            line-height: 1.05;
+            margin: 0 0 4mm;
+        }
+
+        .booklet-cover-copy p {
+            color: var(--muted);
+            font-size: 13pt;
+            line-height: 1.35;
+            margin-bottom: 3mm;
+        }
+
+        .booklet-profile-grid {
+            display: grid;
+            gap: 4mm;
+            grid-template-columns: 1fr 1fr;
+            margin: 0;
+        }
+
+        .booklet-profile-grid div {
+            background: var(--booklet-soft);
+            border: 1px solid #d0dde0;
+            border-radius: 3mm;
+            min-width: 0;
+            padding: 4mm;
+        }
+
+        .booklet-profile-grid dt {
+            color: var(--muted);
+            font-size: 8.5pt;
+            font-weight: 800;
+            margin-bottom: 1mm;
+        }
+
+        .booklet-profile-grid dd {
+            font-size: 10.5pt;
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .booklet-cover-footer {
+            border-top: 1px solid #cfd8d2;
+            color: var(--muted);
+            font-size: 9pt;
+            padding-top: 4mm;
+        }
+
+        .booklet-note-page {
+            display: block;
+        }
+
+        .booklet-context-grid {
+            margin-top: 4mm;
+        }
+
+        .booklet-answer-section {
+            break-after: page;
+        }
+
+        .booklet-answer-block {
+            border-top: 1px solid #dbe3df;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            padding: 5mm 0 1mm;
+        }
+
+        .booklet-answer-block:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .booklet-answer-block p {
+            white-space: normal;
+        }
+
         @media (max-width: 900px) {
             .output-toolbar {
                 align-items: stretch;
@@ -549,9 +703,23 @@
                 width: 100%;
             }
 
+            .booklet-preview,
+            .booklet-page {
+                width: 100%;
+            }
+
+            .booklet-page {
+                min-height: auto;
+            }
+
             .poster-a-hero,
             .poster-a-zone-grid,
             .poster-b-zone-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .booklet-cover-layout,
+            .booklet-profile-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -606,6 +774,24 @@
                 page-break-after: avoid;
                 page-break-inside: avoid;
                 width: 210mm;
+            }
+
+            .booklet-preview {
+                display: block;
+                gap: 0;
+                width: 210mm;
+            }
+
+            .booklet-page {
+                border: 0;
+                box-shadow: none;
+                min-height: 297mm;
+                page-break-after: always;
+                width: 210mm;
+            }
+
+            .booklet-page:last-child {
+                page-break-after: auto;
             }
         }
     </style>

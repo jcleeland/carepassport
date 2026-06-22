@@ -76,6 +76,7 @@ final class DashboardController
             'photo' => '/photo/portrait',
             'poster_a' => '/output/poster-a',
             'poster_b' => '/output/poster-b',
+            'booklet' => '/output/booklet',
             default => '/resident/edit',
         };
     }

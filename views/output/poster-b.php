@@ -48,8 +48,10 @@ $preferredName = trim((string) ($resident['preferred_name'] ?: $resident['full_n
     <div class="actions output-actions">
         <button type="button" onclick="window.print()">Print / Save as PDF</button>
         <a href="/output/poster-a">Poster A preview</a>
+        <a href="/output/booklet">Full Booklet preview</a>
         <a href="/questionnaire/review">Back to review and visibility</a>
         <a href="/photo/portrait">Back to photo upload</a>
+        <a href="/dashboard">Dashboard</a>
     </div>
 </div>
 

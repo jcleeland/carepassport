@@ -115,5 +115,6 @@ $router->get('/photo/portrait/preview', fn () => $photoController->previewPortra
 $router->get('/photo/portrait/skip', fn () => $photoController->skipPortrait());
 $router->get('/output/poster-a', fn () => $outputController->posterA());
 $router->get('/output/poster-b', fn () => $outputController->posterB());
+$router->get('/output/booklet', fn () => $outputController->booklet());
 
 $router->dispatch($request)->send();
